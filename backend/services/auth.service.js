@@ -4,26 +4,21 @@ import { pool } from '../config/db.js';
 
 //user signup service
 export const signupUser = async ({ name, email, password }) => {
-    const [existingUser] = await pool.query(
-        "SELECT id FROM users WHERE email = ?",
+    const { rows: existingUser } = await pool.query(
+        "SELECT id FROM users WHERE email = $1",
         [email]
     );
 
     if (existingUser.length > 0) {
         throw new Error("User already exists");
     }
-
-    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // ✅ Insert user
-    const [result] = await pool.query(
-        "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+    const { rows } = await pool.query(
+        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
         [name, email, hashedPassword]
     );
-
     return {
-        id: result.insertId,
+        id: rows[0].id,
         name,
         email
     };
@@ -32,16 +27,15 @@ export const signupUser = async ({ name, email, password }) => {
 
 //user login service
 export const loginUser = async ({ email, password }) => {
-    const [users] = await pool.query(
-        "SELECT * FROM users WHERE email = ?",
+    const { rows } = await pool.query(
+        "SELECT id,name,email,password FROM users WHERE email = $1",
         [email]
     );
-
-    if (users.length === 0) {
+    if (rows.length === 0) {
         throw new Error("Invalid credentials");
     }
 
-    const user = users[0];
+    const user = rows[0];
 
     // ✅ Compare password
     const isMatch = await bcrypt.compare(password, user.password);
