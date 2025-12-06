@@ -1,0 +1,67 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { pool } from '../config/db.js';
+
+//user signup service
+export const signupUser = async ({ name, email, password }) => {
+    const [existingUser] = await pool.query(
+        "SELECT id FROM users WHERE email = ?",
+        [email]
+    );
+
+    if (existingUser.length > 0) {
+        throw new Error("User already exists");
+    }
+
+    // ✅ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ Insert user
+    const [result] = await pool.query(
+        "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+        [name, email, hashedPassword]
+    );
+
+    return {
+        id: result.insertId,
+        name,
+        email
+    };
+}
+
+
+//user login service
+export const loginUser = async ({ email, password }) => {
+    const [users] = await pool.query(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+    );
+
+    if (users.length === 0) {
+        throw new Error("Invalid credentials");
+    }
+
+    const user = users[0];
+
+    // ✅ Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error("Invalid credentials");
+    }
+
+    // ✅ Generate JWT
+    const token = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+
+    return {
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email
+        }
+    };
+}
