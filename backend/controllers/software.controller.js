@@ -1,8 +1,8 @@
-import { addSoftware } from "../services/software.service.js";
+import { addSW } from "../services/software.service.js";
 
 export const addSoftware = async (req, res) => {
     try {
-        const result = await addSoftware(req.body);
+        const result = await addSW(req.body);
 
         return res.status(201).json({
             success: true,

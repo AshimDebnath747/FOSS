@@ -5,8 +5,8 @@ export const addSoftwareSchema = z.object({
     description: z
         .string("Invalid description"),
     category: z.string("Invalid Category"),
-    homepageUrl: z.string("Invalid URL"),
-    logoUrl: z.string("Invalid Logo URL"),
+    pageurl: z.string("Invalid URL"),
+    logourl: z.string("Invalid Logo URL"),
     license: z
         .string("Invalid License")
 })
