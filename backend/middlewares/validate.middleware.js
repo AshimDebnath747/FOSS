@@ -3,7 +3,7 @@ export const validate = (schema) => (req, res, next) => {
         schema.parse(req.body) //Zod validation
         next()
     } catch (err) {
-        return res.status(400).json({
+        return res.status(200).json({
             success: false,
             errors: err.errors.map(e => e.message)
         });

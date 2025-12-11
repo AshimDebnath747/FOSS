@@ -27,7 +27,6 @@ router.get(
         res.redirect(`http://localhost:5173/`);
     }
 );
-//router.post("/google-auth");
 
 export default router;
 
